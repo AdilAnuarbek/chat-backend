@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/websocket"
 )
@@ -20,8 +21,12 @@ var broadcast = make(chan []byte)
 func main() {
 	http.HandleFunc("/ws", handleConnections)
 	go handleMessages()
-	fmt.Println("Server started on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	fmt.Printf("Server started on :%s\n", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {
