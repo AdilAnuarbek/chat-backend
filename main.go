@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -42,11 +44,31 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 	for {
 		_, msg, err := ws.ReadMessage()
 		if err != nil {
-			log.Printf("Read error: %v", err)
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Printf("Unexpected close error: %v", err)
+			}
 			delete(clients, ws)
 			break
 		}
-		broadcast <- msg
+		type Message struct {
+			Nickname  string `json:"nickname"`
+			Message   string `json:"message"`
+			Timestamp string `json:"timestamp"`
+		}
+		var message Message
+		err = json.Unmarshal(msg, &message)
+		if err != nil {
+			log.Printf("Error unmarshalling message: %v", err)
+			continue
+		}
+		message.Timestamp = time.Now().Format("2006-01-02 15:04:05")
+		log.Println(message.Timestamp)
+		messageJSON, err := json.Marshal(message)
+		if err != nil {
+			log.Printf("Error marshalling message: %v", err)
+			continue
+		}
+		broadcast <- messageJSON
 	}
 }
 
