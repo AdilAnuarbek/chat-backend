@@ -61,8 +61,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 			log.Printf("Error unmarshalling message: %v", err)
 			continue
 		}
-		message.Timestamp = time.Now().Format("2006-01-02 15:04:05")
-		log.Println(message.Timestamp)
+		message.Timestamp = time.Now().Format("02.01.2006 15:04:05")
 		messageJSON, err := json.Marshal(message)
 		if err != nil {
 			log.Printf("Error marshalling message: %v", err)
